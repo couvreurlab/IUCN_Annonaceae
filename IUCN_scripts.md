@@ -9,9 +9,7 @@ output:
       theme: readable
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 # Initial things to do
 
@@ -40,11 +38,7 @@ library(ConR)
 library(maptools)
 ```
 
-```{r include = FALSE}
-library(rworldmap)
-library(ConR)
-library(maptools)
-```
+
 
 
 # Import original raw occurence dataset
@@ -52,7 +46,8 @@ library(maptools)
 
 Update paths and file name to your own
 
-```{r}
+
+```r
 df <- read.csv("data/occs_cleaned_medrged_WAG_TAN_MO_P_03092021.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
 ```
 
@@ -63,7 +58,8 @@ You should have a dataframe now.
 
 ## Import free maps "rworldmap"
 
-```{r}
+
+```r
 newmap <- getMap(resolution = "low")
 ```
 
@@ -72,10 +68,13 @@ newmap <- getMap(resolution = "low")
 Here, focusing on Madagascar (but you can update coordonates under xlim and ylim)   
 Points can be changed via *pch* option  
 
-```{r newmap, fig.cap="Raw distribution of Annonaceae", echo=TRUE, message=FALSE, warning=FALSE, error=FALSE}
+
+```r
 plot(newmap, xlim = c(40, 50), ylim = c(-27, -12), asp = 1, axes=TRUE)
 points(as.numeric(df$ddlong), as.numeric(df$ddlat), col = "red", cex = 1, pch = 19)
 ```
+
+![Raw distribution of Annonaceae](IUCN_scripts_files/figure-html/newmap-1.png)
 
 # Filter raw dataset for `ConR` analysis
 
@@ -89,7 +88,8 @@ Here, we shall filter the dataset, and prepare a dataframe for `ConR`: we will e
 
 we use the function *subset()*  
 
-```{r}
+
+```r
 df_mada = subset(df, country == "Madagascar")
 ```
 
@@ -97,7 +97,8 @@ df_mada = subset(df, country == "Madagascar")
 
 We will extract non-blank rows for *specific_epithet*, using *==""*
 
-```{r}
+
+```r
 df_mada_sp = df_mada[!(df_mada$specific_epithet==""), ]
 ```
 
@@ -106,7 +107,8 @@ df_mada_sp = df_mada[!(df_mada$specific_epithet==""), ]
 
 ColYear is the 13th column of the dataframe in our database, need to update if different
 
-```{r}
+
+```r
 colnames(df_mada_sp)[13] <- "coly"
 ```
 
@@ -117,7 +119,8 @@ We do not have a *tax* column, so we shall create it: *genus* + *specific_epithe
 
 ### Create a new "tax" column by merging (paste) genus and specific_epithet columns
 
-```{r}
+
+```r
 df_mada_sp$tax = paste(df_mada_sp$genus, df_mada_sp$specific_epithet)
 ```
 
@@ -126,13 +129,15 @@ df_mada_sp$tax = paste(df_mada_sp$genus, df_mada_sp$specific_epithet)
 
 1) without collection year column *coly*
 
-```{r}
+
+```r
 df_mada_conR = df_mada_sp[c("ddlat","ddlong","tax")]
 ```
 
 2) with collection year column *coly*
 
-```{r}
+
+```r
 df_mada_conR = df_mada_sp[c("ddlat","ddlong","tax","coly")]
 ```
 
@@ -161,25 +166,30 @@ First we need to import the PA shape file
 The shapefile must be in your dierctory already  
 CAREFULL: Include **all** extensions: *.dbf*, *.shp*, *.shx*) in the same folder  
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, error=FALSE}
-mada_shape = readShapePoly("data/mada_protected.shp", proj4string=CRS ("+proj=longlat +datum=WGS84"))
-```
 
-```{r fig.cap = "Madagascar with protected areas", echo=TRUE, message=FALSE, warning=FALSE, error=FALSE}
+
+
+```r
 plot(newmap, xlim = c(40, 50), ylim = c(-27, -12), asp = 1, axes=TRUE)
 plot(mada_shape, col="green", lwd=0.25, add=TRUE)
 ```
 
+![Madagascar with protected areas](IUCN_scripts_files/figure-html/unnamed-chunk-11-1.png)
+
 ### Import the PA shapefile availible in `ConR` (has less PAs)
 
-```{r}
+
+```r
 data(Madagascar.protec)
 ```
 
-```{r fig.cap = "Madagascar with protected areas from ConR",echo=TRUE, message=FALSE, warning=FALSE, error=FALSE}
+
+```r
 plot(newmap, xlim = c(40, 50), ylim = c(-27, -12), asp = 1, axes=TRUE)
 plot(Madagascar.protec, col="green", lwd=0.25, add=TRUE)
 ```
+
+![Madagascar with protected areas from ConR](IUCN_scripts_files/figure-html/unnamed-chunk-13-1.png)
 
 # Run a full `IUCN.eval` taking into account PAs
 
@@ -198,7 +208,8 @@ Depending on the number of species, this can take a few minutes
 The function creates an excel file *IUCN_results.xlsx* located in your working directory  
 Also creates a file with all the maps *IUCN_results_map*. You can turn that off with `DrawMaps=FALSE` (having the DrawMaps function on takes longer)
 
-```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE, results = "hide"}
+
+```r
 MyResults <- IUCN.eval(df_mada_conR, protec.areas = mada_shape, ID_shape_PA = "WDPA_PID", showWarnings = FALSE, DrawMap = TRUE)
 ```
 
@@ -218,7 +229,8 @@ MyResults <- IUCN.eval(df_mada_conR, protec.areas = mada_shape, ID_shape_PA = "W
 
 ## Import the "land" layer (world map available in `ConR` open access)  
 
-```{r}
+
+```r
 data(land)
 ```
 
@@ -228,8 +240,14 @@ This will create four spatial maps, saved in your working directory *IUCN_result
 
 We can zoom into the country area we want using the coordinate limits  
 
-```{r echo=TRUE, message=FALSE, warning=FALSE, error=FALSE}
+
+```r
 map.res(MyResults, Occurrences=df_mada_conR, country_map=land, export_map=TRUE, threshold=3, LatMin=-25,LatMax=-12,LongMin=42, LongMax=52, Resol=0.5)
+```
+
+```
+## [1] "Number of cell with at least one occurrence is 149"
+## [1] "Number of cell with number of occurrences higher or equal to 3 is 85"
 ```
 
 ## Map of diversity and conservation
