@@ -1,5 +1,5 @@
 
-# Initial things to do
+# Annonaceae conservation status in Madagascar
 
 R script to analyze conservation status of Annonaceae in Madagascar
 
