@@ -3,7 +3,7 @@ title: "Conservation analysis of Malagasy Annonaceae"
 author: "Thomas L.P. Couvreur"
 date: "14/09/2021"
 output:
-    html_document:
+    md_document:
       number_sections: true
       theme: readable
 ---
