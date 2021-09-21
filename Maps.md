@@ -1,7 +1,7 @@
 ---
 title: "Mapping distribution and diversity using high and low def countries/regions"
 author: "Thomas L.P. Couvreur"
-date: "Last compiled on 20 septembre, 2021"
+date: "Last compiled on 21 septembre, 2021"
 output:
     html_document:
       keep_md: true
@@ -46,6 +46,7 @@ library(rnaturalearth)
 library(purrr)
 library(smoothr)
 library(rworldxtra)
+library(tidyr)
 ```
 
 
@@ -175,6 +176,47 @@ divpolPlot
 
 ![](Maps_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
+## Add some climatic data to the plots
+
+Here we shall download data from WorldClim and plot it with the map.
+
+### Download or import climatic data from *WorldClim*
+
+If already downloaded and strored on your PC locally:
+
+```
+ climate=getData('worldclim', var='bio',res=2.5, download=FALSE)
+```
+
+Otheriwe (this step can take some time (ca. 123 Mb of data)):
+
+
+```r
+climate=getData('worldclim', var='bio',res=2.5)
+```
+
+### Crop to region of interest
+
+
+```r
+climate <- crop(climate,extent(40, 60,-26, -12))
+```
+
+### Raster the layer you want, here *bio12*
+
+
+```r
+raster <- climate$bio12
+```
+
+### Clean na values
+
+```r
+rasdf <- as.data.frame(raster,xy=TRUE)%>%drop_na()
+```
+
+Now we have a rasterized layer of climate data (*bio12*) we can add to ggplot, see below.
+
 # Plot species distribution data on map
 
 ## Import original raw occurence dataset
@@ -188,7 +230,7 @@ df <- read.csv("data/occs_cleaned_medrged_WAG_TAN_MO_P_03092021.csv", header = T
 
 Our raw database contains **2927** unique records representing **17** genera and **110** species.
 
-## Plot distribution data on *regional* map
+## Plot distribution data on *regional* map **without** climatic data
 
 We have now added a *geom_point* argument to the ggplot script:  
 
@@ -200,7 +242,7 @@ In our file, the columns *ddlat* and *ddlong* indicate the coordinates.
 
 ```r
 divpolPlot <-
-  ggplot() +
+ggplot() +
   geom_sf(data = CNhigh) +
   geom_point(data=df, aes(x=ddlong, y=ddlat), bg = rgb(red = 1, green = 0, blue = 0, alpha = 0.5), col = "black", pch = 21, cex=2) +
   coord_sf(
@@ -217,7 +259,37 @@ divpolPlot <-
 divpolPlot + ggtitle("Distribution of Annonaceae species in Madagascar") + theme(plot.title = element_text(hjust = 0.5)) + xlab("Longitude") + ylab("Latitude")
 ```
 
-![](Maps_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](Maps_files/figure-html/unnamed-chunk-17-1.png)<!-- -->
 
+## Plot distribution data on *regional* map **with** climatic data
+
+This ggplot script is different than the one above as it adds the climate data.  
+
+
+```r
+ggplot()+
+  geom_raster(aes(x=x,y=y,fill=bio12),data=rasdf)+
+  geom_sf(fill='transparent',data=CNpoly)+
+  scale_fill_viridis_c('mm/yr',direction = -1)+
+  coord_sf(expand=c(0,0))+
+  geom_point(data=df, aes(x=ddlong, y=ddlat), bg = rgb(red = 1, green = 0, blue = 0, alpha = 0.5), col = "black", pch = 21, cex=1) +
+  coord_sf(
+    xlim = xlat,
+    ylim = ylong
+  ) +
+  labs(x='Longitude',y='Latitude',
+       title="Annonaceae distribution in Madagascar's climate map",
+       subtitle='Annual precipitation',
+       caption='Source: WorldClim, 2020')+
+  cowplot::theme_cowplot()+
+  theme(panel.grid.major = element_line(color = gray(.5),
+                                        linetype = 'dashed',
+                                        size = 0.5),
+        panel.grid.minor = element_blank(),
+        panel.background = element_rect(fill=NA,color = 'black'),
+        panel.ontop = TRUE)
+```
+
+![](Maps_files/figure-html/unnamed-chunk-18-1.png)<!-- -->
 
 

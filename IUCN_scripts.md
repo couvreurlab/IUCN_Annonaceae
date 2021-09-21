@@ -43,7 +43,6 @@ library(maptools)
 
 # Import original raw occurence dataset
 
-
 Update paths and file name to your own
 
 
@@ -51,7 +50,33 @@ Update paths and file name to your own
 df <- read.csv("data/occs_cleaned_medrged_WAG_TAN_MO_P_03092021.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
 ```
 
-You should have a dataframe now.  
+You should have a dataframe now. 
+
+## Some basic stats
+
+First, I show the codes. The results are included in the text below.
+
+Total number of genera: 
+
+```r
+length(unique(df$genus))
+```
+
+Total number of species:
+
+
+```r
+length(unique(df$specific_epithet))
+```
+
+Total number of records:
+
+
+```r
+length(df$RecordedBy)
+```
+
+Our raw database contains **2927** unique records representing **17** genera and **110** species.
 
 
 # Plot country map with raw occurences
@@ -144,6 +169,8 @@ df_mada_conR = df_mada_sp[c("ddlat","ddlong","tax","coly")]
 
 Now we have the final dataframe *df_mada_conR*  for `ConR` analysis.
 
+This database now contains **0** unique records representing **0** genera and **0** species of Annonaceae in Madagascar.
+
 # Running a simple `ConR`
 
 A simple IUCN evaluation without protected areas (PAs)
@@ -174,7 +201,7 @@ plot(newmap, xlim = c(40, 50), ylim = c(-27, -12), asp = 1, axes=TRUE)
 plot(mada_shape, col="green", lwd=0.25, add=TRUE)
 ```
 
-![Madagascar with protected areas](IUCN_scripts_files/figure-html/unnamed-chunk-11-1.png)
+![Madagascar with protected areas](IUCN_scripts_files/figure-html/unnamed-chunk-14-1.png)
 
 ### Import the PA shapefile availible in `ConR` (has less PAs)
 
@@ -189,7 +216,7 @@ plot(newmap, xlim = c(40, 50), ylim = c(-27, -12), asp = 1, axes=TRUE)
 plot(Madagascar.protec, col="green", lwd=0.25, add=TRUE)
 ```
 
-![Madagascar with protected areas from ConR](IUCN_scripts_files/figure-html/unnamed-chunk-13-1.png)
+![Madagascar with protected areas from ConR](IUCN_scripts_files/figure-html/unnamed-chunk-16-1.png)
 
 # Run a full `IUCN.eval` taking into account PAs
 
